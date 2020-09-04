@@ -23,7 +23,6 @@
 #pragma once
 
 #include <time.h>
-#include <bits/stdc++.h> // UINT_MAX
 #include <set>
 #include <array>
 
@@ -121,11 +120,6 @@ public:
 	uint32_t get_build_time() const {
 		return _build_time;
 	}
-
-	/**
-	 * @brief Returns the maximum supported number of fields this can classify
-	 */
-	virtual const unsigned int get_supported_number_of_fields() const { return UINT_MAX; }
 
 	/**
 	 * @brief Starts the performance measurement of this
