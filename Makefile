@@ -58,7 +58,8 @@ OBJECTS 		+=$(patsubst $(VENDOR_DIR)/%.cpp,$(BIN_DIR)/%.o,$(wildcard $(VENDOR_DI
 EXECUTABLES		:=$(patsubst $(TOOLS_DIR)/%.cpp,$(BIN_DIR)/%.exe,$(wildcard $(TOOLS_DIR)/*.cpp))
 
 # Generate all Executables
-release: $(EXECUTABLES)
+#release: $(EXECUTABLES)
+release: bin/tool_serial_classifier.exe
 	@echo "Done making release"
 
 debug: $(EXECUTABLES) python
