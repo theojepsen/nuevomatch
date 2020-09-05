@@ -26,10 +26,15 @@ TOOLS_DIR	?=		tools
 VENDOR_DIR	?=		vendor
 INCLUDE_DIR	?=		include
 
-CXX			?=		g++
-CXXFLAGS	?=		-std=c++11 -pthread -Wall -fPIC -DNOPYTHON -DNO_RQRMI_OPT
+CXX       =		riscv64-unknown-elf-g++
+CXXFLAGS	?=		-std=c++11 -Wall -fPIC -DNOPYTHON -DNO_RQRMI_OPT
+CXXFLAGS        +=   -lgcc -mcmodel=medany -I. -O2 -ffixed-x30 -ffixed-x31 -fno-common -fno-builtin-printf
+#CXXFLAGS        +=-Wno-unused-function -fno-exceptions
+#CXXFLAGS        +=-Wextra -Werror -pedantic
+#LDFLAGS=-static -nostdlib -nostartfiles -lgcc
+LDFLAGS=-static -lgcc
 DBGFLAGS 	?= 		-g
-SIMDFLAGS	?=		-mavx2 -mfma
+#SIMDFLAGS	?=		-mavx2 -mfma
 INCLUDES	?= 		-I $(BIN_DIR) -I $(INCLUDE_DIR) -I tuplemerge -I vendor
 LIBRARIES	?=		-L $(BIN_DIR)
 RM			?=		rm -f
@@ -53,7 +58,7 @@ OBJECTS 		+=$(patsubst $(VENDOR_DIR)/%.cpp,$(BIN_DIR)/%.o,$(wildcard $(VENDOR_DI
 EXECUTABLES		:=$(patsubst $(TOOLS_DIR)/%.cpp,$(BIN_DIR)/%.exe,$(wildcard $(TOOLS_DIR)/*.cpp))
 
 # Generate all Executables
-release: $(EXECUTABLES) python
+release: $(EXECUTABLES)
 	@echo "Done making release"
 
 debug: $(EXECUTABLES) python
@@ -63,22 +68,24 @@ debug: $(EXECUTABLES) python
 include $(BIN_DIR)/objects.mk
 
 # Any executable file requires all object files!
-$(BIN_DIR)/%.exe: $(OBJECTS) $(BIN_DIR)/%.o
-	$(CXX) $(CXXFLAGS) $(SIMDFLAGS) $(DBGFLAGS) $(OFFLAGS) $(INCLUDES) $(LIBRARIES) $+ -o $@ -ltuplemerge
+#$(BIN_DIR)/%.exe: $(OBJECTS) $(BIN_DIR)/%.o
+#	$(CXX) $(LDFLAGS) $(CXXFLAGS) $(SIMDFLAGS) $(DBGFLAGS) $(OFFLAGS) $(INCLUDES) $(LIBRARIES) $+ -o $@
+$(BIN_DIR)/tool_serial_classifier.exe:  bin/vector_list.o bin/rule_db.o bin/simd_aux.o bin/matrix_operations.o bin/rqrmi_model.o bin/interval_set.o bin/logging.o bin/serial_nuevomatch.o bin/rqrmi_fast.o bin/object_io.o bin/cut_split.o bin/hyper_split.o bin/tool_serial_classifier.o
+	$(CXX) $(LDFLAGS) $(CXXFLAGS) $(SIMDFLAGS) $(DBGFLAGS) $(OFFLAGS) $(INCLUDES) $(LIBRARIES) $+ -o $@
 
 # Create librqrmi.a for python extension
-librqrmi.a: $(OBJECTS)
-	@ar crf $(BIN_DIR)/librqrmi.a \
-	$(BIN_DIR)/algorithms.o $(BIN_DIR)/argument_handler.o $(BIN_DIR)/cpu_core_tools.o \
-	$(BIN_DIR)/logging.o $(BIN_DIR)/lookup.o $(BIN_DIR)/matrix_operations.o \
-	$(BIN_DIR)/rqrmi_fast.o $(BIN_DIR)/rqrmi_model.o $(BIN_DIR)/rqrmi_tools.o \
-	$(BIN_DIR)/object_io.o $(BIN_DIR)/python_library.o $(BIN_DIR)/simd_aux.o \
-	$(BIN_DIR)/vector_list.o
-
-# Python file
-python: librqrmi.a
-	@cp $(SRC_DIR)/*.py $(BIN_DIR)/
-	python3 $(SRC_DIR)/setup.py build_ext -b $(BIN_DIR) --build-lib $(BIN_DIR) -t $(BIN_DIR)
+#librqrmi.a: $(OBJECTS)
+#	@ar crf $(BIN_DIR)/librqrmi.a \
+#	$(BIN_DIR)/algorithms.o $(BIN_DIR)/argument_handler.o $(BIN_DIR)/cpu_core_tools.o \
+#	$(BIN_DIR)/logging.o $(BIN_DIR)/lookup.o $(BIN_DIR)/matrix_operations.o \
+#	$(BIN_DIR)/rqrmi_fast.o $(BIN_DIR)/rqrmi_model.o $(BIN_DIR)/rqrmi_tools.o \
+#	$(BIN_DIR)/object_io.o $(BIN_DIR)/python_library.o $(BIN_DIR)/simd_aux.o \
+#	$(BIN_DIR)/vector_list.o
+#
+## Python file
+#python: librqrmi.a
+#	@cp $(SRC_DIR)/*.py $(BIN_DIR)/
+#	python3 $(SRC_DIR)/setup.py build_ext -b $(BIN_DIR) --build-lib $(BIN_DIR) -t $(BIN_DIR)
 
 # Target specific variables
 release:	DBGFLAGS = -O2 -DNDEBUG
