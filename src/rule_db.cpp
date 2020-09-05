@@ -278,6 +278,8 @@ trace_packet* read_trace_file(const char* trace_filename, const std::vector<uint
  * @return The range (in 32bit space) as {start, end}
  */
 vector<uint32_t> parse_ip_mask_address(const string& ip_address) {
+  throw error("parse_ip_mask_address disabled");
+#if 0
 
 	// Split string to numeric components
 	static const regex delim("\\.|\\/");
@@ -296,17 +298,21 @@ vector<uint32_t> parse_ip_mask_address(const string& ip_address) {
 	uint32_t ip_start = (parts[0] << 24 | parts[1] << 16 | parts[2] << 8 | parts[3]) & parts[4];
 	uint32_t ip_end   = ip_start | ~parts[4];
 	return {ip_start, ip_end};
+#endif
 }
 
 /**
  * @brief Returns an IP string prefix length
  */
 uint32_t get_ip_prefix_length(const string& ip_address) {
+  throw error("get_ip_prefix_length disabled");
+#if 0
 	// Split string to numeric components
 	static const regex delim("\\.|\\/");
 	vector<uint32_t> parts = string_operations::split(
 			ip_address, delim, string_operations::str2int);
 	return parts[4];
+#endif
 }
 
 /**
@@ -314,24 +320,30 @@ uint32_t get_ip_prefix_length(const string& ip_address) {
  * @param mac_address A string representation of a MAC address
  */
 uint32_t parse_mac_address(const string& mac_address) {
+  throw error("parse_mac_address disabled");
+#if 0
 	auto parts = string_operations::split(mac_address, ":");
 	uint32_t out = 0;
 	for (auto p : parts) {
 		out = (out << 8) | string_operations::hex2int(p);
 	}
 	return out;
+#endif
 }
 
 /**
  * @brief Parses protocol range (0xXXXX/0xXXXX)
  */
 vector<uint32_t> parse_hex_range(const string& str) {
+  throw error("parse_hex_range disabled");
+#if 0
 	auto vals = string_operations::split(str, "/", string_operations::hex2int);
 	if (vals[1] == 0xff) {
 		return {vals[0], vals[0]};
 	} else{
 		return {0, 255};
 	}
+#endif
 }
 
 /**
@@ -360,6 +372,8 @@ std::list<uint32_t> read_indices_file(const char* filename) {
  * @return A list of open-flow rules
  */
 std::list<openflow_rule> read_classbench_file(const char* filename) {
+  throw error("read_classbench_file disabled");
+#if 0
 
 	list<openflow_rule> output;
 	openflow_rule rule;
@@ -423,6 +437,7 @@ std::list<openflow_rule> read_classbench_file(const char* filename) {
 		warningf("Cannot load Classbench file: %s", e.what());
 	}
 	return output;
+#endif
 }
 
 /**
@@ -431,6 +446,8 @@ std::list<openflow_rule> read_classbench_file(const char* filename) {
  * @return A list of open-flow rules
  */
 std::list<openflow_rule> read_classbench_ng_file(const char* filename) {
+  throw error("read_classbench_ng_file disabled");
+#if 0
 	try {
 		// Open file
 		fstream fs;
@@ -500,6 +517,7 @@ std::list<openflow_rule> read_classbench_ng_file(const char* filename) {
 	} catch (...) {
 		throw error("cannot open Calssbench-ng file");
 	}
+#endif
 }
 
 /**

@@ -35,7 +35,7 @@
 
 #include <basic_types.h>
 #include <pipeline_thread.h>
-#include <cpu_core_tools.h>
+//#include <cpu_core_tools.h>
 #include <logging.h>
 
 template<typename T, uint32_t N>
@@ -53,6 +53,7 @@ struct WorkBatch {
  * @brief A thread that takes place in a chin of pipeline events
  * @tparam T The consumed job type of this thread
  */
+#if 0
 template<typename T>
 class PipelineThread {
 public:
@@ -290,3 +291,4 @@ public:
 		return result;
 	};
 };
+#endif

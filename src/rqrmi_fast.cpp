@@ -71,7 +71,9 @@ RQRMIFast::RQRMIFast(rqrmi_model_t *model) {
 
 	// Allocate memory
 	model_info("Allocating data for %u submodels (in total)", total_submodels);
-	_submodles = (fast_submodel_t*)aligned_alloc(64,
+  // XXX(tj) we aren't using SIMD on riscv, so it needn't be aligned:
+	//_submodles = (fast_submodel_t*)aligned_alloc(64,
+	_submodles = (fast_submodel_t*)malloc(
 			sizeof(fast_submodel_t) * total_submodels);
 
 	// Get submodel information

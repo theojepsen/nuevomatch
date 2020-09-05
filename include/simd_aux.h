@@ -26,7 +26,7 @@
 #include <sstream>
 
 // Intrinsics
-#include <x86intrin.h>
+//#include <x86intrin.h>
 
 /**
  * @brief For clean code of fast multiple add

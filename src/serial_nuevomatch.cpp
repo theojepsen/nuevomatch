@@ -30,10 +30,10 @@
 #include <string.h>
 
 #include <object_io.h>
-#include <cpu_core_tools.h>
+//#include <cpu_core_tools.h>
 
 #include <array_operations.h>
-#include <string_operations.h>
+//#include <string_operations.h>
 #include <serial_nuevomatch.h>
 
 /**
@@ -170,6 +170,7 @@ void SerialNuevoMatch<N>::print(uint32_t verbose) const {
 	// High verbosity
 	if (verbose > 2) {
 
+#if 0
 		// Print the errors of all RQRMI
 		for (uint32_t i=_configuration.start_from_iset; i<_last_iset_idx; ++i) {
 			SimpleLogger::get() << "Error list for iSet " << i << ": [";
@@ -182,6 +183,7 @@ void SerialNuevoMatch<N>::print(uint32_t verbose) const {
 			}
 			SimpleLogger::get() << "]" << SimpleLogger::endl();
 		}
+#endif
 		// Print expected errors
 		for (uint32_t i=_configuration.start_from_iset; i<_last_iset_idx; ++i) {
 			message_s("Expected error for iSet " << i << ": "
@@ -380,7 +382,8 @@ ObjectReader SerialNuevoMatch<N>::build_remainder() {
         // Building new classifier might thrash cash.
         // Therefore, the building is done using a temporary object
         GenericClassifier* gc;
-        if (_configuration.remainder_type == "cutsplit") {
+        //if (_configuration.remainder_type == "cutsplit") {
+        if (strcmp(_configuration.remainder_type, "cutsplit") == 0) {
                 gc = new CutSplit(24, 8);
         //} else if (_configuration.remainder_type == "tuplemerge") {
         //        gc = new TupleMerge();
@@ -457,6 +460,7 @@ void SerialNuevoMatch<N>::group_subsets_to_cores() {
 		add_subset(*it);
 	}
 
+#if 0
 	// Print status of all workers
 	for (uint32_t i=0; i<_configuration.num_of_cores; ++i) {
 
@@ -473,6 +477,7 @@ void SerialNuevoMatch<N>::group_subsets_to_cores() {
 		// Print status of serial worker
 		logger("SerialNuevoMatch worker 0 holds: {" << subset_string << "} of total " << size << " KB.");
 	}
+#endif
 
 }
 

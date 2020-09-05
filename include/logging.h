@@ -27,11 +27,14 @@
 #include <sstream>
 #include <cstdarg>
 #include <stdexcept>
-#include <signal.h>
-#include <semaphore.h>
-#include <pthread.h>
+//#include <signal.h>
+//#include <semaphore.h>
+//#include <pthread.h>
 #include <string.h>
-#include <pthread.h>
+
+// XXX(tj) had to override this to get it to compile for riscv:
+#define CLOCK_MONOTONIC 1
+#define clock_gettime(a, b) (void)a;(void)b
 
 #ifndef NDEBUG
  // Print a debug message to stderr using std::stream convention
@@ -82,6 +85,7 @@
 	__func__ << "@" << __FILE__ << ":" << __LINE__ << ") " << \
 	SimpleException::format(__VA_ARGS__)
 
+
 /**
  * @brief Handles messages and errors
  */
@@ -98,7 +102,7 @@ class SimpleLogger {
 	bool _use_stderr;
 
 	// A semaphore for syncing messages between threads
-	sem_t _semaphore;
+	//sem_t _semaphore;
 
 	// Sticky force
 	bool _sticky_force;
@@ -108,11 +112,13 @@ class SimpleLogger {
 
 	SimpleLogger() {
 		// Initiate the semaphore only once
+#if 0
 		if (sem_init(&_semaphore, 0, 1)) {
 			std::stringstream ss;
 			ss << "Fatal error: cannot initialize logging semaphore: " << strerror(errno);
 			throw std::runtime_error(ss.str());
 		}
+#endif
 		for (int i=0; i< buffer_size; ++i) {
 			_buffer[i] = 0;
 		}
@@ -169,6 +175,7 @@ public:
 	 */
 	static SimpleLogger& lock() {
 		// Acquire log semaphore
+#if 0
 		int s;
 		while ( (s = sem_wait(&SimpleLogger::get()._semaphore) == -1) && (errno==EINTR) ) continue;
 		if (s==-1) {
@@ -176,6 +183,7 @@ public:
 			ss <<  "Fatal error while waiting for semaphore: " << strerror(errno);
 			throw std::runtime_error(ss.str());
 		}
+#endif
 		return *_instance;
 	}
 
@@ -183,7 +191,7 @@ public:
 	 * @brief A logger command. Release logging lock.
 	 */
 	static SimpleLogger& release() {
-		sem_post(&SimpleLogger::get()._semaphore);
+		//sem_post(&SimpleLogger::get()._semaphore);
 		return *_instance;
 	}
 

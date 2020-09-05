@@ -30,10 +30,10 @@
 #include <unistd.h>
 #include <errno.h>
 #include <string.h>
-#include <sys/shm.h>
+//#include <sys/shm.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <sys/mman.h>
+//#include <sys/mman.h>
 
 #include <object_io.h>
 #include <logging.h>
@@ -187,7 +187,8 @@ ObjectReader::ObjectReader(const ObjectPacker& rhs)
  * @throws In case of file read error
  */
 ObjectReader::ObjectReader(const char* filename) {
-
+  throw error("ObjectReader from filename disabled");
+#if 0
 	// Check that file file exist
 	if (access(filename, F_OK) == -1) {
 		throw error("Cannot read from file: file '" << filename << "' does not exist");
@@ -219,13 +220,16 @@ ObjectReader::ObjectReader(const char* filename) {
 	this->_buffer = (unsigned char*)shmem;
 	this->_org_buffer = (unsigned char*)shmem;
 	this->_mmap_used = true;
+#endif
 }
 
 ObjectReader::~ObjectReader() {
 	if (this->_mmap_used) {
+#if 0
 		if (munmap(this->_org_buffer, this->_mmap_used) != 0){
 			warning("Cannot detach memory map: " << strerror(errno));
 		}
+#endif
 	}
 }
 

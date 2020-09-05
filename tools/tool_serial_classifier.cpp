@@ -34,6 +34,11 @@
 #include <tuple_merge.h>
 #include <serial_nuevomatch.h>
 #include <nuevomatch_config.h>
+#if 1
+#include "nuevomatch_64_classifier.h"
+#else
+char nuevomatch_64_classifier[] = {0};
+#endif
 
 /**
  * @brief Main entry point
@@ -67,7 +72,8 @@ int main(int argc, char** argv) {
   SerialNuevoMatch<1>* classifier = new SerialNuevoMatch<1>(config);
 
 	// Read classifier file to memory
-	ObjectReader classifier_handler("nuevomatch_64.classifier");
+	//ObjectReader classifier_handler("nuevomatch_64.classifier");
+	ObjectReader classifier_handler(nuevomatch_64_classifier, sizeof(nuevomatch_64_classifier));
 
 	// Load nuevomatch
 	// This will work for both classifiers without remainder classifier set

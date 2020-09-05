@@ -23,7 +23,7 @@
 #pragma once
 
 // Intrinsics
-#include <x86intrin.h>
+//#include <x86intrin.h>
 
 #include <vector>
 #include <sstream>

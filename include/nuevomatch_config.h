@@ -98,7 +98,7 @@ struct NuevoMatchConfig {
 	 * @brief Set an arbitrary allocation of subsets to cores
 	 *        Format: 0=1,2;1=3,4,5 Will put subsets {1,2} on core 0 and subsets {3,4,5} on core 1
 	 */
-	std::string arbitrary_subset_clore_allocation;
+	const char *arbitrary_subset_clore_allocation;
 
 	/**
 	 * @brief Run NuevoMatch on any subset of fields of the original dataset
@@ -109,5 +109,5 @@ struct NuevoMatchConfig {
 	 * @brief A string representation of the external classifier type,
 	 *        in case a new one will be built
 	 */
-	std::string remainder_type;
+	const char *remainder_type;
 };
