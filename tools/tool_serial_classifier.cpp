@@ -57,6 +57,7 @@ int main(int argc, char** argv) {
 	config.disable_all_classification = false;
 	//config.force_rebuilding_remainder = true;
 	config.force_rebuilding_remainder = false;
+  config.arbitrary_subset_clore_allocation = nullptr;
 
 #if 1
 	const char* remainder_type = "cutsplit";
