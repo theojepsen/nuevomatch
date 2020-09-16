@@ -27,7 +27,7 @@ VENDOR_DIR	?=		vendor
 INCLUDE_DIR	?=		include
 
 CXX			?=		g++
-CXXFLAGS	?=		-std=c++11 -pthread -Wall -fPIC -DNOPYTHON
+CXXFLAGS	?=		-std=c++11 -pthread -Wall -fPIC -DNOPYTHON -DNO_RQRMI_OPT
 DBGFLAGS 	?= 		-g
 SIMDFLAGS	?=		-mavx2 -mfma
 INCLUDES	?= 		-I $(BIN_DIR) -I $(INCLUDE_DIR) -I tuplemerge -I vendor

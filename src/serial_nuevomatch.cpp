@@ -382,8 +382,8 @@ ObjectReader SerialNuevoMatch<N>::build_remainder() {
         GenericClassifier* gc;
         if (_configuration.remainder_type == "cutsplit") {
                 gc = new CutSplit(24, 8);
-        } else if (_configuration.remainder_type == "tuplemerge") {
-                gc = new TupleMerge();
+        //} else if (_configuration.remainder_type == "tuplemerge") {
+        //        gc = new TupleMerge();
         } else {
                 throw errorf("NuevoMatch cannot rebuild a remainder classifier of type %s", _configuration.remainder_type);
         }
