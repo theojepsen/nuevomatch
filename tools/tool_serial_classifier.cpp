@@ -36,12 +36,16 @@
 #include <nuevomatch_config.h>
 #if 1
 //#include "nuevomatch_64_classifier.h"
+//#include "nuevomatch_64_classifier_1krules.h"
 #include "nuevomatch_64_classifier_100rules.h"
 #else
 char nuevomatch_64_classifier[] = {0};
 #endif
 
 #include "lnic.h"
+
+// Expected address of the load generator
+uint64_t load_gen_ip = 0x0a000001;
 
 extern "C" {
     extern int _end;
@@ -50,6 +54,15 @@ extern "C" {
     extern void __libc_init_array();
     extern void __libc_fini_array();
 }
+
+void send_startup_msg(int cid, uint64_t context_id) {
+  uint64_t app_hdr = (load_gen_ip << 32) | (0 << 16) | (2*8);
+  uint64_t cid_to_send = cid;
+  lnic_write_r(app_hdr);
+  lnic_write_r(cid_to_send);
+  lnic_write_r(context_id);
+}
+
 
 /**
  * @brief Main entry point
@@ -106,16 +119,16 @@ int main(int argc, char** argv) {
 #else
   uint32_t num_of_packets = 10;
   trace_packet trace_packets[10];
-  trace_packets[0].header = {1824690037, 2405068276, 6394,  15121, 6, 0}; trace_packets[0].match_priority = 23682;
-  trace_packets[1].header = {2735466734, 2409248971, 24383, 33147, 6, 0}; trace_packets[1].match_priority = 80749;
-  trace_packets[2].header = {3014326451, 224173574,  14968, 1715,  6, 0}; trace_packets[2].match_priority = 61796;
-  trace_packets[3].header = {4000926507, 1669083352, 46568, 135,   6, 0}; trace_packets[3].match_priority = 37982;
-  trace_packets[4].header = {3490938347, 1673468417, 19902, 1986,  6, 0}; trace_packets[4].match_priority = 76049;
-  trace_packets[5].header = {1711012005, 1662762722, 33779, 23972, 6, 0}; trace_packets[5].match_priority = 69447;
-  trace_packets[6].header = {3519978292, 1673501826, 53790, 1521,  6, 0}; trace_packets[6].match_priority = 4905;
-  trace_packets[7].header = {3358996848, 1677639773, 45651, 1310,  6, 0}; trace_packets[7].match_priority = 60033;
-  trace_packets[8].header = {962377704,  1664972678, 23949, 1521,  6, 0}; trace_packets[8].match_priority = 14597;
-  trace_packets[9].header = {500138621,  3396495291, 35485, 5631,  6, 0}; trace_packets[9].match_priority = 49831;
+  trace_packets[0].header = {532746804, 3397109384, 43204, 1521,  6, 0}; trace_packets[0].match_priority = 94;
+  trace_packets[1].header = {520899175, 3396744005, 33500, 1715,  6, 0}; trace_packets[1].match_priority = 73;
+  trace_packets[2].header = {525102834, 3396784787, 26901, 6790,  6, 0}; trace_packets[2].match_priority = 85;
+  trace_packets[3].header = {475623671, 3396388276, 10205, 5631,  6, 0}; trace_packets[3].match_priority = 34;
+  trace_packets[4].header = {492908153, 3396476695, 11394, 19856, 6, 0}; trace_packets[4].match_priority = 9;
+  trace_packets[5].header = {520346879, 3396746798, 14598, 20,    6, 0}; trace_packets[5].match_priority = 76;
+  trace_packets[6].header = {496792388, 3396337836, 8702,  1711,  6, 0}; trace_packets[6].match_priority = 26;
+  trace_packets[7].header = {533223626, 219940546,  47855, 1705,  6, 0}; trace_packets[7].match_priority = 93;
+  trace_packets[8].header = {492908153, 3396476695, 43418, 19856, 6, 0}; trace_packets[8].match_priority = 9;
+  trace_packets[9].header = {520382556, 3396746440, 6686,  2121,  6, 0}; trace_packets[9].match_priority = 77;
 #endif
   messagef("Total %u packets in trace", num_of_packets);
 
@@ -126,6 +139,7 @@ int main(int argc, char** argv) {
 
   uint64_t start_cycles, delta_cycles;
 
+#if 0
   // Warm cache
   uint32_t warm_repetitions = 5;
   for (uint32_t r=0; r<warm_repetitions; ++r) {
@@ -142,7 +156,11 @@ int main(int argc, char** argv) {
     delta_cycles = rdcycle() - start_cycles;
     printf("Latency: %ld cycles total, %ld cycles/packet\n", delta_cycles, delta_cycles/num_of_packets);
   }
+#endif
 
+  send_startup_msg(0, 0);
+
+#if 0
  	// Perform the experiment, repeat X times
  	uint32_t time_to_repeat = 10;
  	messagef("Repeating experiment %u times", time_to_repeat);
@@ -157,6 +175,7 @@ int main(int argc, char** argv) {
     // Run the lookup
     for (uint32_t i=start_packet; i<end_packet; ++i) {
       classifier_output_t out = classifier->classify(trace_packets[i].get());
+      if (out.action != 0) continue;
       if ((uint32_t)out.action != trace_packets[i].match_priority) {
 					warningf("packet %u does not match!. Got: %u, expected: %u",
 							i, out.action, trace_packets[i].match_priority);
@@ -173,6 +192,52 @@ int main(int argc, char** argv) {
  			classifier->print(3);
  		}
  	}
+#else
+  int cid = 0;
+  uint64_t app_hdr, sent_time, service_time, class_meta;
+#define HEADER_WORDS 3
+  uint64_t headers[HEADER_WORDS];
+  while (1) {
+    lnic_wait();
+    app_hdr = lnic_read();
+    //printf("[%d] --> Received msg of length: %u bytes\n", cid, (uint16_t)app_hdr);
+    service_time = lnic_read();
+    sent_time = lnic_read();
+    class_meta = lnic_read();
+
+    //for (int i = 0; i < HEADER_WORDS; i++) headers[i] = lnic_read();
+    headers[0] = lnic_read();
+#if HEADER_WORDS > 1
+    headers[1] = lnic_read();
+#endif
+#if HEADER_WORDS > 2
+    headers[2] = lnic_read();
+#endif
+#if HEADER_WORDS > 3
+#error "Add more unrolled iterations for both lread() and lwrite()"
+#endif
+
+    classifier_output_t out = classifier->classify((uint32_t*)headers);
+    int action = out.action;
+    //int action = config.remainder_classifier->classify_sync((uint32_t*)headers, -1);
+    uint32_t trace_idx = class_meta >> 32;
+    class_meta = ((uint64_t)trace_idx << 32) | ((uint32_t)action);
+
+    lnic_write_r((app_hdr & (IP_MASK | CONTEXT_MASK)) | (8 + 8 + 8 + (HEADER_WORDS * 8)));
+    lnic_write_r(service_time);
+    lnic_write_r(sent_time);
+    lnic_write_r(class_meta);
+    //for (int i = 0; i < HEADER_WORDS; i++) lnic_write_r(headers[i]);
+    lnic_write_r(headers[0]);
+#if HEADER_WORDS > 1
+    lnic_write_r(headers[1]);
+#endif
+#if HEADER_WORDS > 2
+    lnic_write_r(headers[2]);
+#endif
+    lnic_msg_done();
+	}
+#endif
 
  	delete classifier;
 }
@@ -181,7 +246,15 @@ extern "C" {
 bool is_single_core() { return false; }
 int core_main(int argc, char** argv, int cid, int nc) {
   (void)nc;
-  if (cid > 0) return EXIT_SUCCESS;
+
+  uint64_t context_id = 0;
+  uint64_t priority = 0;
+  lnic_add_context(context_id, priority);
+
+  if (cid > 0) {
+    send_startup_msg(cid, context_id);
+    return EXIT_SUCCESS;
+  }
 
   // Setup the C++ libraries
   sbrk_init((long int*)data_end);
