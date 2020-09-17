@@ -51,31 +51,20 @@
 #endif // NDEBUG
 
 // Print a log message to stderr using std::stream convention
- #define logger(...) SimpleLogger::lock(); SimpleLogger::get() << \
- "Log: (" << __func__ <<") " << __VA_ARGS__ << \
- " (" << __FILE__ << ":" << __LINE__ << ")" << SimpleLogger::endl(); SimpleLogger::release()
+ #define logger(...) printf("logger %s @ %s:%d\n", __func__, __FILE__, __LINE__);
  // Print a log message to stderr using printf convention
- #define loggerf(...) SimpleLogger::lock(); SimpleLogger::get() << \
- "Log: (" << __func__ <<") " << SimpleLogger::format(__VA_ARGS__) << \
- " (" << __FILE__ << ":" << __LINE__ << ")" << SimpleLogger::endl(); SimpleLogger::release()
+ #define loggerf(...) printf(__VA_ARGS__); printf("\n");
 
 // Print a message to stdout using std::stream convention
-#define message_s(...) SimpleLogger::get(false) << SimpleLogger::lock() << __VA_ARGS__ << \
-	SimpleLogger::endl(); SimpleLogger::release()
+#define message_s(...) printf("message %s @ %s:%d\n", __func__, __FILE__, __LINE__);
 
 // Print a message to stdout using printf convention
-#define messagef(...) SimpleLogger::get(false) << SimpleLogger::lock() << \
-	SimpleLogger::format(__VA_ARGS__) << \
-	SimpleLogger::endl(); SimpleLogger::release()
+#define messagef(...) printf(__VA_ARGS__); printf("\n");
 
 // Print a warning message to stderr using std::stream convention
-#define warning(...) SimpleLogger::lock(); SimpleLogger::get() << \
-	"Warning: (" << __func__ <<") " << __VA_ARGS__ << \
-	" (" << __FILE__ << ":" << __LINE__ << ")" << SimpleLogger::endl(); SimpleLogger::release()
+#define warning(...) printf("warning %s @ %s:%d\n", __func__, __FILE__, __LINE__);
 // Print a warning message to stderr using printf convention
-#define warningf(...) SimpleLogger::lock(); SimpleLogger::get() << \
-	"Warning: (" << __func__ <<") " << SimpleLogger::format(__VA_ARGS__) << \
-	" (" << __FILE__ << ":" << __LINE__ << ")" << SimpleLogger::endl(); SimpleLogger::release()
+#define warningf(...) printf(__VA_ARGS__); printf("\n");
 
 // Create an exception with an arbitrary message using std::stream convention
 #define error(...) SimpleException::create() <<  "Exception: (" <<  \
@@ -147,19 +136,19 @@ public:
 	 */
 	void add(const char* message, bool flush = false) {
 		// Should I print message to screen
-		if ((_sticky_force || flush) && _use_stderr){
-			std::cerr << message << std::flush;
-		}
-		else if (!_use_stderr){
-			std::cout << message;
-		}
+		//if ((_sticky_force || flush) && _use_stderr){
+		//	std::cerr << message << std::flush;
+		//}
+		//else if (!_use_stderr){
+		//	std::cout << message;
+		//}
 
-		// Copy message to buffer
-		int msg_size = strlen(message);
-		if ((_buffer_cursor+msg_size+1)>=buffer_size) {
-			_buffer_cursor=0;
-		}
-		strcpy(&_buffer[_buffer_cursor], message);
+		//// Copy message to buffer
+		//int msg_size = strlen(message);
+		//if ((_buffer_cursor+msg_size+1)>=buffer_size) {
+		//	_buffer_cursor=0;
+		//}
+		//strcpy(&_buffer[_buffer_cursor], message);
 	}
 
 	/**
@@ -266,6 +255,7 @@ public:
 	 * @brief Creates new exception class
 	 */
 	static SimpleException create() {
+    printf("Exception created\n");
 		return SimpleException();
 	}
 
@@ -301,6 +291,7 @@ public:
 	}
 
 	virtual const char* what() const noexcept {
+    printf("Exception: %s\n", _message.c_str());
 		return _message.c_str();
 	}
 };

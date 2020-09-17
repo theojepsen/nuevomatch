@@ -33,12 +33,24 @@
  * @param buff The buffer to read from
  * @param size Size argument for buffer overflow check.
  */
+#if 0
 #define safe_buffer_read(T, buf, size) \
 	*(T*)buf; \
 	if ((size-=sizeof(T))<0) { \
 		throw error("cannot read " << size << " bytes from buffer"); \
 	} \
 	buf=(T*)buf+1;
+#else
+// XXX(tj): instead of casting the memory location (as above), we use memcpy.
+// This has to be done because the buffer may not be 4B aligned, which causes
+// problems on RISCV.
+#define safe_buffer_read(T, buf, size) \
+  ({ T tmpbuf; memcpy(&tmpbuf, buf, sizeof(T)); \
+	if ((size-=sizeof(T))<0) { \
+		throw error("cannot read " << size << " bytes from buffer"); \
+	} \
+	buf=(T*)buf+1; tmpbuf; })
+#endif
 
 // Matrix information is often not required for debugging.
 // Set dedicated debugging flag for matrices

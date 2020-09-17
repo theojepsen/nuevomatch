@@ -241,6 +241,7 @@ ObjectReader& ObjectReader::operator>>(ObjectReader& obj) {
 	unsigned int new_size = 0;
 	*this >> new_size;
 	if (_size < new_size) {
+		printf("Cannot extract object from reader: buffer overflow\n");
 		throw error("Cannot extract object from reader: buffer overflow");
 	}
 	obj._buffer = _buffer;
@@ -257,9 +258,12 @@ ObjectReader& ObjectReader::operator>>(ObjectReader& obj) {
 template <typename T>
 ObjectReader& ObjectReader::operator>>(T& obj) {
 	if (_size < sizeof(T)) {
+    printf("Cannot read object from reader: buffer overflow\n");
 		throw error("Cannot read object from reader: buffer overflow");
 	}
-	obj = *(T*)_buffer;
+  // XXX(tj): use memcpy instead to avoid 4B alignment problems with RISCV
+	//obj = *(T*)_buffer;
+	memcpy((void*)&obj, _buffer, sizeof(T));
 	_size -= sizeof(T);
 	_buffer=(unsigned char*)((T*)_buffer+1);
 	return *this;

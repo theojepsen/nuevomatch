@@ -44,12 +44,24 @@
  * @param buff The buffer to read from
  * @param size Size argument for buffer overflow check.
  */
+#if 0
 #define safe_buffer_read(T, buf, size) \
 	*(T*)buf; \
 	if ((size-=sizeof(T))<0) { \
 		throw error("cannot read " << size << " bytes from buffer"); \
 	} \
 	buf=(T*)buf+1;
+#else
+// XXX(tj): instead of casting the memory location (as above), we use memcpy.
+// This has to be done because the buffer may not be 4B aligned, which causes
+// problems on RISCV.
+#define safe_buffer_read(T, buf, size) \
+  ({ T tmpbuf; memcpy(&tmpbuf, buf, sizeof(T)); \
+	if ((size-=sizeof(T))<0) { \
+		throw error("cannot read " << size << " bytes from buffer"); \
+	} \
+	buf=(T*)buf+1; tmpbuf; })
+#endif
 
 // Model information is often not required for debugging.
 // Set dedicated debugging flag for models
@@ -435,10 +447,11 @@ int load_submodel(rqrmi_model_t* rqrmi_model, uint32_t stage_index, uint32_t mod
 			}
 
 			scalar_t* scalr_ptr = (scalar_t*)char_ptr;
-			submodel->input_mean = *(scalr_ptr++);
-			submodel->input_stddev = *(scalr_ptr++);
-			submodel->output_factor = *(scalr_ptr++);
-			submodel->output_min = *(scalr_ptr++);
+      // XXX(tj): use memcpy instead to avoid 4B alignment problems with RISCV
+			memcpy(&submodel->input_mean, scalr_ptr++, sizeof(scalar_t));
+			memcpy(&submodel->input_stddev, scalr_ptr++, sizeof(scalar_t));
+			memcpy(&submodel->output_factor, scalr_ptr++, sizeof(scalar_t));
+			memcpy(&submodel->output_min, scalr_ptr++, sizeof(scalar_t));
 			char_ptr = (uint8_t*)scalr_ptr;
 			break;
 	}
@@ -458,7 +471,9 @@ int load_submodel(rqrmi_model_t* rqrmi_model, uint32_t stage_index, uint32_t mod
 	uint32_t* header = (uint32_t*)char_ptr;
 
 	// Build the layers
-	uint32_t num_of_layers = *(header++);
+	//uint32_t num_of_layers = *(header++);
+	uint32_t num_of_layers;
+  memcpy(&num_of_layers, header++, sizeof(num_of_layers));
 
 	submodel->num_of_layers = num_of_layers;
 	info("Loading model's data. Number of total layers: " << num_of_layers);
@@ -486,7 +501,9 @@ int load_submodel(rqrmi_model_t* rqrmi_model, uint32_t stage_index, uint32_t mod
 
 	// Allocate memory for the matrices
 	for (uint32_t k=0; k<num_of_layers; ++k) {
-		uint32_t layer_width = *(header++);
+		//uint32_t layer_width = *(header++);
+		uint32_t layer_width;
+    memcpy(&layer_width, header++, sizeof(layer_width));
 		submodel->biases[k] = new_matrix(1, layer_width);
 		submodel->weights[k] = new_matrix(last_layer_width, layer_width);
 		last_layer_width = layer_width;
@@ -528,12 +545,14 @@ int load_submodel(rqrmi_model_t* rqrmi_model, uint32_t stage_index, uint32_t mod
 
 		// Read biases
 		for (uint32_t x=0; x<mat_bias->cols; ++x) {
-			*(scalar_t*)get_element(mat_bias, 0, x) = *(data++);
+			//*(scalar_t*)get_element(mat_bias, 0, x) = *(data++);
+			memcpy((scalar_t*)get_element(mat_bias, 0, x), data++, sizeof(scalar_t));
 		}
 		// Read weights
 		for (uint32_t y=0; y<mat_weights->rows; ++y) {
 			for (uint32_t x=0; x<mat_weights->cols; ++x) {
-				*(scalar_t*)get_element(mat_weights, y, x) = *(data++);
+				//*(scalar_t*)get_element(mat_weights, y, x) = *(data++);
+				memcpy((scalar_t*)get_element(mat_weights, y, x), data++, sizeof(scalar_t));
 			}
 		}
 	}

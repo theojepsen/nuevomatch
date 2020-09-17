@@ -74,6 +74,8 @@ void SerialNuevoMatch<N>::load(ObjectReader& reader) {
 	reader 	>> _num_of_isets >> _num_of_rules
 			>> _size >> _build_time;
 
+  printf("_num_of_isets=%d _num_of_rules=%d _size=%d _build_time=%d\n", _num_of_isets, _num_of_rules, _size, _build_time);
+
 	// The size is measured by the iSets, and not by what was packed
 	// Reason: support dynamic size for dynamic iSets
 	_size = 0;
@@ -354,12 +356,14 @@ void SerialNuevoMatch<N>::load_remainder(ObjectReader& reader) {
         }
 
         // Load classifier from sub-reader
+#if 0
         try {
                 _configuration.remainder_classifier->load(sub_reader);
                 return;
         } catch (const exception& e) {
                 warning("Error while loading remainder classifier: " << e.what());
         }
+#endif
 
         // Try to recover
         loggerf("Recovering by rebuilding remainder classifier");
