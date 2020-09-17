@@ -27,11 +27,8 @@ VENDOR_DIR	?=		vendor
 INCLUDE_DIR	?=		include
 
 CXX       =		riscv64-unknown-elf-g++
-CXXFLAGS	?=		-std=c++11 -Wall -fPIC -DNOPYTHON -DNO_RQRMI_OPT
-CXXFLAGS        +=   -lgcc -mcmodel=medany -I. -O2 -ffixed-x30 -ffixed-x31 -fno-common -fno-builtin-printf
-#CXXFLAGS        +=-Wno-unused-function -fno-exceptions
-#CXXFLAGS        +=-Wextra -Werror -pedantic
-#LDFLAGS=-static -nostdlib -nostartfiles -lgcc
+CXXFLAGS	?= -O2 -std=c++11 -Wall -fPIC -DNOPYTHON -DNO_RQRMI_OPT
+RISCV_CXXFLAGS  = -mcmodel=medany -ffixed-x30 -ffixed-x31 -fno-common -fno-builtin-printf
 LDFLAGS=-static -lgcc
 DBGFLAGS 	?= 		-g
 #SIMDFLAGS	?=		-mavx2 -mfma
@@ -72,7 +69,7 @@ include $(BIN_DIR)/objects.mk
 #$(BIN_DIR)/%.exe: $(OBJECTS) $(BIN_DIR)/%.o
 #	$(CXX) $(LDFLAGS) $(CXXFLAGS) $(SIMDFLAGS) $(DBGFLAGS) $(OFFLAGS) $(INCLUDES) $(LIBRARIES) $+ -o $@
 $(BIN_DIR)/tool_serial_classifier.exe:  bin/vector_list.o bin/rule_db.o bin/simd_aux.o bin/matrix_operations.o bin/rqrmi_model.o bin/interval_set.o bin/logging.o bin/serial_nuevomatch.o bin/rqrmi_fast.o bin/object_io.o bin/cut_split.o bin/hyper_split.o bin/tool_serial_classifier.o
-	$(CXX) $(LDFLAGS) $(CXXFLAGS) $(SIMDFLAGS) $(DBGFLAGS) $(OFFLAGS) $(INCLUDES) $(LIBRARIES) $+ -o $@
+	$(CXX) $(LDFLAGS) $(CXXFLAGS) $(RISCV_CXXFLAGS) $(SIMDFLAGS) $(DBGFLAGS) $(OFFLAGS) $(INCLUDES) $(LIBRARIES) $+ -o $@
 
 # Create librqrmi.a for python extension
 #librqrmi.a: $(OBJECTS)

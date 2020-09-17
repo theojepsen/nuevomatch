@@ -42,7 +42,11 @@
 char nuevomatch_64_classifier[] = {0};
 #endif
 
+#define USE_LNIC false
+
+#if USE_LNIC
 #include "lnic.h"
+#endif
 
 // Expected address of the load generator
 uint64_t load_gen_ip = 0x0a000001;
@@ -55,6 +59,7 @@ extern "C" {
     extern void __libc_fini_array();
 }
 
+#if USE_LNIC
 void send_startup_msg(int cid, uint64_t context_id) {
   uint64_t app_hdr = (load_gen_ip << 32) | (0 << 16) | (2*8);
   uint64_t cid_to_send = cid;
@@ -62,6 +67,7 @@ void send_startup_msg(int cid, uint64_t context_id) {
   lnic_write_r(cid_to_send);
   lnic_write_r(context_id);
 }
+#endif // USE_LNIC
 
 
 /**
@@ -137,14 +143,14 @@ int main(int argc, char** argv) {
   uint32_t end_packet   = -1;
   if (end_packet > num_of_packets) end_packet = num_of_packets;
 
-  uint64_t start_cycles, delta_cycles;
+  //uint64_t start_cycles, delta_cycles;
 
-#if 0
+#if !USE_LNIC
   // Warm cache
   uint32_t warm_repetitions = 5;
   for (uint32_t r=0; r<warm_repetitions; ++r) {
     messagef("Iteration %u...", r);
-    start_cycles = rdcycle();
+    //start_cycles = rdcycle();
     for (uint32_t i=start_packet; i<end_packet; ++i) {
       classifier_output_t out = classifier->classify(trace_packets[i].get());
       if ((uint32_t)out.action != trace_packets[i].match_priority) {
@@ -153,14 +159,10 @@ int main(int argc, char** argv) {
       }
     }
     classifier->reset_counters();
-    delta_cycles = rdcycle() - start_cycles;
-    printf("Latency: %ld cycles total, %ld cycles/packet\n", delta_cycles, delta_cycles/num_of_packets);
+    //delta_cycles = rdcycle() - start_cycles;
+    //printf("Latency: %ld cycles total, %ld cycles/packet\n", delta_cycles, delta_cycles/num_of_packets);
   }
-#endif
 
-  send_startup_msg(0, 0);
-
-#if 0
  	// Perform the experiment, repeat X times
  	uint32_t time_to_repeat = 10;
  	messagef("Repeating experiment %u times", time_to_repeat);
@@ -170,7 +172,7 @@ int main(int argc, char** argv) {
 
     // Reset counters
     classifier->reset_counters();
-    start_cycles = rdcycle();
+    //start_cycles = rdcycle();
     classifier->start_performance_measurement();
     // Run the lookup
     for (uint32_t i=start_packet; i<end_packet; ++i) {
@@ -181,8 +183,8 @@ int main(int argc, char** argv) {
 							i, out.action, trace_packets[i].match_priority);
       }
     }
-    delta_cycles = rdcycle() - start_cycles;
-    printf("Latency: %ld cycles total, %ld cycles/packet\n", delta_cycles, delta_cycles/num_of_packets);
+    //delta_cycles = rdcycle() - start_cycles;
+    //printf("Latency: %ld cycles total, %ld cycles/packet\n", delta_cycles, delta_cycles/num_of_packets);
 
     classifier->stop_performance_measurement();
 
@@ -193,7 +195,11 @@ int main(int argc, char** argv) {
  		}
  	}
 #else
+
+
   int cid = 0;
+  send_startup_msg(cid, 0);
+
   uint64_t app_hdr, sent_time, service_time, class_meta;
 #define HEADER_WORDS 3
   uint64_t headers[HEADER_WORDS];
@@ -242,6 +248,7 @@ int main(int argc, char** argv) {
  	delete classifier;
 }
 
+#if USE_LNIC
 extern "C" {
 bool is_single_core() { return false; }
 int core_main(int argc, char** argv, int cid, int nc) {
@@ -264,3 +271,4 @@ int core_main(int argc, char** argv, int cid, int nc) {
   return main(argc, argv);
 }
 }
+#endif // USE_LNIC

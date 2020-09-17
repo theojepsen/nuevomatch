@@ -129,7 +129,7 @@ for f in $files; do
 	n=$(basename $f)
 	show "Generating makefile for $n"
 	set_error "Error generating sub-makefile for $n. See '$logfile' for details."
-	check generate_makefile $f "\$\(CXXFLAGS\) \$\(SIMDFLAGS\) \$\(DBGFLAGS\)"
+	check generate_makefile $f "\$\(CXXFLAGS\) \$\(RISCV_CXXFLAGS\) \$\(SIMDFLAGS\) \$\(DBGFLAGS\)"
 done
 
 # Make sub-makefile for vendor adapter
@@ -138,7 +138,7 @@ for f in $files; do
 	n=$(basename $f)
 	show "Generating makefile for $n"
 	set_error "Error generating sub-makefile for $n. See '$logfile' for details."
-	check generate_makefile $f "-O2 -std=c++14 -fpermissive \$\(DBGFLAGS\)"
+	check generate_makefile $f "-O2 -std=c++14 -fpermissive \$\(RISCV_CXXFLAGS\) \$\(DBGFLAGS\)"
 done
 
 # Merge all makefiles
